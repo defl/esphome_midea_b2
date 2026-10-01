@@ -1,0 +1,60 @@
+# KinCony KC868-AGv3 (ESP32-S3-WROOM-1U N16R8) driving an ACiQ mini-split.
+# Pins per KinCony: IR receiver GPIO1, IR emitters (7, inside the box) GPIO47.
+
+esphome:
+  name: midea-b2-example
+
+esp32:
+  board: esp32-s3-devkitc-1
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/defl/esphome_midea_b2
+      ref: main
+    components: [midea_b2]
+    refresh: 0s
+
+logger:
+
+api:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+remote_transmitter:
+  id: ir_tx
+  pin: GPIO47
+  carrier_duty_percent: 50%
+  # A state change and a swing/turbo command go out back to back; never overlap them.
+  non_blocking: false
+
+remote_receiver:
+  id: ir_rx
+  pin:
+    number: GPIO1
+    inverted: true
+  # Longer than the ~5 ms gap between frames, so one press arrives as one buffer and the
+  # trailer is decoded together with the state frames it belongs to.
+  idle: 10ms
+
+sensor:
+  - platform: homeassistant
+    id: room_temperature
+    entity_id: sensor.room_temperature
+    internal: true
+    # ESPHome climate works in Celsius; convert if the source sensor reports Fahrenheit.
+    filters:
+      - lambda: return (x - 32.0) / 1.8;
+
+climate:
+  - platform: midea_b2
+    name: "AC"
+    transmitter_id: ir_tx
+    receiver_id: ir_rx
+    sensor: room_temperature
+    fahrenheit_display: true
