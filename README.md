@@ -4,8 +4,8 @@ ESPHome external component that drives an **ACiQ / Blueridge / Midea mini-split 
 the variant with the `RG10R(M2S)/BGEFU1` handset — and **reads that handset back**, so the
 climate entity follows the unit when someone uses the remote.
 
-**Status: protocol verified against 35 captures from one unit's handset; on-device testing in
-progress.**
+**Status: working.** In daily use on one ACiQ unit since 2026-10-07, driven from a KinCony
+KC868-AGv3; the protocol is verified against 35 captures from that unit's handset.
 
 > **Not ESPHome's `midea_ir`.** That component speaks a 6-byte, `0xA1`-typed frame with a
 > checksum. This unit speaks a 3-byte, complement-paired, `0xB2` frame, and ignores `midea_ir`
@@ -66,6 +66,23 @@ Plus every standard [climate](https://esphome.io/components/climate/) option.
 **Set the receiver's `idle` above 5 ms.** A press is up to three frames separated by gaps of
 4.4–5.3 ms. With a shorter `idle` the trailer frame arrives in a buffer of its own, and the
 fan percentage, half degree and display unit it carries are lost.
+
+**In a °F Home Assistant, add a `visual:` block.** The component's setpoint step is 0.5 °C.
+Home Assistant converts the temperatures to °F but applies the step as is, so the entity
+offers 0.5 °F steps and a 62.5 °F floor. These settings give whole-degree steps over the
+63–86 °F range the handset shows:
+
+```yaml
+climate:
+  - platform: midea_b2
+    # ...
+    visual:
+      min_temperature: 17.2222   # 63 °F
+      max_temperature: 30        # 86 °F
+      temperature_step:
+        target_temperature: 1
+        current_temperature: 0.1
+```
 
 ## What the entity offers
 

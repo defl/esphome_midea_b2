@@ -58,3 +58,11 @@ climate:
     receiver_id: ir_rx
     sensor: room_temperature
     fahrenheit_display: true
+    # For a °F Home Assistant: whole-degree steps over 63-86 °F. HA applies the step as is,
+    # so without this the default 0.5 °C step shows as 0.5 °F.
+    visual:
+      min_temperature: 17.2222
+      max_temperature: 30
+      temperature_step:
+        target_temperature: 1
+        current_temperature: 0.1
